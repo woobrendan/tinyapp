@@ -1,7 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 const PORT = 8080;
 const app = express();
+app.use(cookieParser());
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
@@ -20,20 +22,31 @@ const generateRandom6DigitString = () => {
   return result;
 };
 
+
 //create new URL page
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render('urls_new', templateVars);
 });
 
 //My URL page with all URLs
 app.get('/urls', (req, res) => {
-  const templateVars = {urls: urlDatabase};
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"]
+  };
   res.render('urls_index', templateVars);
 });
 
 //renders the indiv page per URL
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const templateVars = {
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies["username"]
+  };
   res.render('urls_show', templateVars)
 }); 
 
@@ -43,7 +56,7 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL);
 });
 
-//post routes
+      //////// post routes //////
 
 //generate new shortURL then send to independant page
 app.post('/urls', (req, res) => {
@@ -65,6 +78,18 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 });
+
+//allows for login, saves username as cookie
+app.post('/login', (req, res) => {
+  res.cookie('username', req.body.username);
+  res.redirect('/urls');
+});
+
+//logs user out and clears username cookie
+app.post('/logout', (req, res) => {
+  res.clearCookie('username')
+  res.redirect('/urls');
+})
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
