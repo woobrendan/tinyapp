@@ -47,6 +47,11 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-const generateRandonString = () => {
-  
-}
+const generateRandom6DigitString = () => {
+  let charSet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+    for (let i = 6; i > 0; --i) {
+      result += charSet[Math.floor(Math.random() * 62)];
+    }
+  return result;
+};
