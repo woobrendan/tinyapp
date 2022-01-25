@@ -20,38 +20,46 @@ const generateRandom6DigitString = () => {
   return result;
 };
 
-
+//create new URL page
 app.get('/urls/new', (req, res) => {
   res.render('urls_new');
 });
-
+//My URL page with all URLs
 app.get('/urls', (req, res) => {
   const templateVars = {urls: urlDatabase};
   res.render('urls_index', templateVars);
 });
-
-app.post('/urls/:shortURL/delete', (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect('/urls');
-});
-
+//renders the indiv page per URL
 app.get('/urls/:shortURL', (req, res) => {
   const templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render('urls_show', templateVars)
 }); 
-
+//redirects to long URL website, from urls_show clicking on shortURL
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
 //post routes
+
+//generate new shortURL then send to independant page
 app.post('/urls', (req, res) => {
   let shortURL = generateRandom6DigitString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
 });
-
+//edits long URL from urls_show then goes to my URL page
+app.post('/urls/:shortURL', (req, res) => {
+  let shortURL = req.params.shortURL;
+  const newLongURL = req.body.longURL
+  urlDatabase[shortURL] = newLongURL;
+  res.redirect("/urls")
+});
+//deletes key:pair from urldatabase object
+app.post('/urls/:shortURL/delete', (req, res) => {
+  delete urlDatabase[req.params.shortURL];
+  res.redirect('/urls');
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
