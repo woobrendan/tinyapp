@@ -11,9 +11,15 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-app.get('/', (req, res) => {
-  res.send('Hello!');
-});
+const generateRandom6DigitString = () => {
+  let charSet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let result = '';
+    for (let i = 6; i > 0; --i) {
+      result += charSet[Math.floor(Math.random() * 62)];
+    }
+  return result;
+};
+
 
 app.get('/urls/new', (req, res) => {
   res.render('urls_new');
@@ -24,34 +30,23 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
-app.post('/urls', (req, res) => {
-  console.log(req.body);
-  res.send("ok");
-})
-
-
 app.get('/urls/:shortURL', (req, res) => {
-const templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]}
+  const templateVars = {shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render('urls_show', templateVars)
 }); 
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+app.get('/u/:shortURL', (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
 });
 
-app.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b> World</b></body></html>\n');
+//post routes
+app.post('/urls', (req, res) => {
+  let shortURL = generateRandom6DigitString();
+  urlDatabase[shortURL] = req.body.longURL;
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-const generateRandom6DigitString = () => {
-  let charSet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  let result = '';
-    for (let i = 6; i > 0; --i) {
-      result += charSet[Math.floor(Math.random() * 62)];
-    }
-  return result;
-};
