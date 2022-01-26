@@ -23,5 +23,12 @@
           </form>
           <% } %>
       </div>
+      <div class="navbar-nav">
+        <% if (user_id) { %>
+          <form method="POST" action="/logout">
+            <h6>Logged in as: <%= user_id %> </h6><button type="submit" class="btn btn-primary">Logout</button>
+          </form>
+          <% } %>
+      </div>
   </nav>
 </header>
