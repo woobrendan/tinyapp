@@ -46,7 +46,10 @@ const generateRandom6DigitString = () => {
   return result;
 };
 
-//need a home page or root directory
+//get root and redirect to URL page
+app.get('/', (req, res) => {
+  res.redirect('/urls');
+})
 
 //create new URL page
 app.get('/urls/new', (req, res) => {
@@ -58,7 +61,7 @@ app.get('/urls/new', (req, res) => {
   res.render('urls_new', templateVars);
 });
 
-//My URL page with all URLs
+//My URL page with all URLs, also home page
 app.get('/urls', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
@@ -127,12 +130,6 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   res.redirect('/urls');
 });
 
-// //allows for login, saves username as cookie
-// app.post('/login', (req, res) => {
-//   res.cookie('username', req.body.username);
-//   res.redirect('/urls');
-// });
-
 //logs user out and clears cookie
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id')
@@ -158,19 +155,25 @@ app.post('/register', (req, res) => {
     email: req.body.email,
     password: req.body.password
   };
-  console.log('this is users', users);
-  res.cookie('email', req.body.email);
-  res.cookie('password', req.body.password);
+  // res.cookie('email', req.body.email);
+  // res.cookie('password', req.body.password);
   res.cookie('user_id', id);
   res.redirect('/urls');
 });
 
+//confirms login info, then sets cookies
 app.post('/login', (req, res) => {
   for (const user in users) {
     if (req.body.email === users[user]["email"]) {
-      res.cookie('email', req.body.email);
-      res.cookie('user_id', user);
-      res.redirect('/urls');
+      if(req.body.password !== users[user]["password"]) {
+        res.status(403).send('Password did not match, please try again.');
+      } else {
+        // res.cookie('email', req.body.email);
+        res.cookie('user_id', user);
+        res.redirect('/urls');
+      }
+    } else {
+      res.status(403).send('Email did match any emails on record.');
     }
   }
 });
