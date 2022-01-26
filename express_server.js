@@ -78,6 +78,7 @@ app.get('/urls/:shortURL', (req, res) => {
   };
   res.render('urls_show', templateVars)
 }); 
+
 //renders registration page
 app.get('/register', (req, res) => {
   const templateVars = {
@@ -85,6 +86,15 @@ app.get('/register', (req, res) => {
     user: users[req.cookies["user_id"]]
   };
   res.render('urls_register', templateVars)
+});
+
+//renders login page
+app.get('/login', (req, res) => {
+  const templateVars = {
+    user_id: req.cookies["user_id"],
+    user: users[req.cookies["user_id"]]
+  };
+  res.render('urls_login', templateVars)
 });
 
 //redirects to long URL website, from urls_show clicking on shortURL
@@ -117,13 +127,13 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   res.redirect('/urls');
 });
 
-//allows for login, saves username as cookie
-app.post('/login', (req, res) => {
-  res.cookie('username', req.body.username);
-  res.redirect('/urls');
-});
+// //allows for login, saves username as cookie
+// app.post('/login', (req, res) => {
+//   res.cookie('username', req.body.username);
+//   res.redirect('/urls');
+// });
 
-//logs user out and clears username cookie
+//logs user out and clears cookie
 app.post('/logout', (req, res) => {
   res.clearCookie('user_id')
   res.clearCookie('email')
@@ -136,7 +146,7 @@ app.post('/register', (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     res.status(400).send('Email and/or password must not be empty');
   }
-  //if email already exists respond w/ 400 status code
+  
   for (const user in users) {
     if (req.body.email === users[user]["email"]) {
       res.status(400).send('Email has already been registered');
@@ -153,6 +163,16 @@ app.post('/register', (req, res) => {
   res.cookie('password', req.body.password);
   res.cookie('user_id', id);
   res.redirect('/urls');
+});
+
+app.post('/login', (req, res) => {
+  for (const user in users) {
+    if (req.body.email === users[user]["email"]) {
+      res.cookie('email', req.body.email);
+      res.cookie('user_id', user);
+      res.redirect('/urls');
+    }
+  }
 });
 
 app.listen(PORT, () => {

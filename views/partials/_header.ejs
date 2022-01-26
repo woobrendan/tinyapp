@@ -13,12 +13,15 @@
     </div>
     <div class="navbar-nav">
       <% if (!user) { %>
+        <form method="GET" action="/login">
+          <button type="submit" class="btn btn-outline-light btn-sm">Login</button>
+        </form>
         <form method="GET" action="/register">
-          <button type="submit" class="btn btn-primary">Register Here</button>
+          <button type="submit" class="btn btn-outline-light btn-sm">Register</button>
         </form>
         <% } else { %>
           <form method="POST" action="/logout">
-            <h6>User email: <%= user.email %> </h6><button type="submit" class="btn btn-primary">Logout</button> 
+            <h6 class="text-light">USER: <%= user.email %> </h6><button type="submit" class="btn btn-primary float-right">Logout</button> 
           </form>
           <% } %>
     </div> 
