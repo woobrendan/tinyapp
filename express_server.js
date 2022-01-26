@@ -24,7 +24,18 @@ const users = {
     email: "david@ortiz.com", 
     password: "Th15password"
   }
-}
+};
+
+// const findCurrentUser = (userObj) => {
+//   if (!req.cookies["user_id"]) {
+//     return null
+//   }
+//   for (const user in userObj) {
+//     if (req.cookies["user_id"] === user) {
+//       return user;
+//     }
+//   }
+// };
 
 const generateRandom6DigitString = () => {
   let charSet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -40,9 +51,10 @@ const generateRandom6DigitString = () => {
 //create new URL page
 app.get('/urls/new', (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
-    user_id: req.cookies["user_id"]
+    user_id: req.cookies["user_id"],
+    user: users[req.cookies["user_id"]],
   };
+  console.log(templateVars)
   res.render('urls_new', templateVars);
 });
 
@@ -50,8 +62,8 @@ app.get('/urls/new', (req, res) => {
 app.get('/urls', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
-    username: req.cookies["username"],
-    user_id: req.cookies["user_id"]
+    user_id: req.cookies["user_id"],
+    user: users[req.cookies["user_id"]]
   };
   res.render('urls_index', templateVars);
 });
@@ -61,11 +73,19 @@ app.get('/urls/:shortURL', (req, res) => {
   const templateVars = {
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"],
-    user_id: req.cookies["user_id"]
+    user_id: req.cookies["user_id"],
+    user: users[req.cookies["user_id"]]
   };
   res.render('urls_show', templateVars)
 }); 
+//renders registration page
+app.get('/register', (req, res) => {
+  const templateVars = {
+    user_id: req.cookies["user_id"],
+    user: users[req.cookies["user_id"]]
+  };
+  res.render('urls_register', templateVars)
+});
 
 //redirects to long URL website, from urls_show clicking on shortURL
 app.get('/u/:shortURL', (req, res) => {
@@ -73,13 +93,6 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL);
 });
 
-//renders registration page
-app.get('/register', (req, res) => {
-  const templateVars = {
-    username: req.cookies["username"]
-  };
-  res.render('urls_register', templateVars)
-});
 
       //////// post routes //////
 
@@ -112,19 +125,21 @@ app.post('/login', (req, res) => {
 
 //logs user out and clears username cookie
 app.post('/logout', (req, res) => {
-  res.clearCookie('username')
+  res.clearCookie('user_id')
+  res.clearCookie('email')
+  res.clearCookie('password')
   res.redirect('/urls');
 });
 
 //creates user, creates cookie for email/pw. pushes new user to global userobj
 app.post('/register', (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
+  //if email or password is empty, respond w/ 400 status code
+  //if email already exists respond w/ 400 status code
   const id = generateRandom6DigitString();
   users[id] = {
     id,
-    email,
-    password
+    email: req.body.email,
+    password: req.body.password
   };
   res.cookie('email', req.body.email);
   res.cookie('password', req.body.password);
