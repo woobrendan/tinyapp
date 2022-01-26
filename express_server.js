@@ -133,14 +133,22 @@ app.post('/logout', (req, res) => {
 
 //creates user, creates cookie for email/pw. pushes new user to global userobj
 app.post('/register', (req, res) => {
-  //if email or password is empty, respond w/ 400 status code
+  if (req.body.email === "" || req.body.password === "") {
+    res.status(400).send('Email and/or password must not be empty');
+  }
   //if email already exists respond w/ 400 status code
+  for (const user in users) {
+    if (req.body.email === users[user]["email"]) {
+      res.status(400).send('Email has already been registered');
+    }
+  }
   const id = generateRandom6DigitString();
   users[id] = {
     id,
     email: req.body.email,
     password: req.body.password
   };
+  console.log('this is users', users);
   res.cookie('email', req.body.email);
   res.cookie('password', req.body.password);
   res.cookie('user_id', id);
