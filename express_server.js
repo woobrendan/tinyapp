@@ -1,4 +1,4 @@
-const {findUserFromEmail, authenticateUser, addNewUser, generateRandom6DigitString} = require('./helpers');
+const {authenticateUser, addNewUser, generateRandom6DigitString} = require('./helpers');
 const express = require('express');
 const app = express();
 
@@ -30,15 +30,15 @@ const urlDatabase = {
   }
 };
 
-const usersDatabase = { 
+const usersDatabase = {
   "chandler": {
-    id: "chandler", 
-    email: "mschanandler@bong.com", 
+    id: "chandler",
+    email: "mschanandler@bong.com",
     password: bcrypt.hashSync("couldiBEapassword", salt)
   },
- "davidortiz": {
-    id: "davidortiz", 
-    email: "david@ortiz.com", 
+  "davidortiz": {
+    id: "davidortiz",
+    email: "david@ortiz.com",
     password: bcrypt.hashSync("Th15password", salt)
   }
 };
@@ -46,9 +46,9 @@ const usersDatabase = {
 //get root and redirect to URL page
 app.get('/', (req, res) => {
   res.redirect('/urls');
-})
+});
 
-//create new URL page
+//show create new URL page
 app.get('/urls/new', (req, res) => {
   if (!req.session["user_id"]) {
     res.redirect('/login');
@@ -60,7 +60,7 @@ app.get('/urls/new', (req, res) => {
   res.render('urls_new', templateVars);
 });
 
-//My URL page with all URLs, also home page
+//URL Index page with all URLs, also home page
 app.get('/urls', (req, res) => {
   if (!req.session["user_id"]) {
     res.redirect('/login');
@@ -75,7 +75,7 @@ app.get('/urls', (req, res) => {
 
 //renders the indiv page per URL
 app.get('/urls/:shortURL', (req, res) => {
-  let keys = Object.keys(urlDatabase)
+  let keys = Object.keys(urlDatabase);
   
   //checks for valid shortURL path
   if (!keys.includes(req.params.shortURL)) {
@@ -83,20 +83,20 @@ app.get('/urls/:shortURL', (req, res) => {
 
     //checks to match current user ID with creator ID
   } else if (urlDatabase[req.params.shortURL]["userID"] !== req.session["user_id"]) {
-      res.send("You may only view URLs that you created");
+    res.send("You may only view URLs that you created");
 
     //render the page
   } else {
     const templateVars = {
-      shortURL: req.params.shortURL, 
+      shortURL: req.params.shortURL,
       longURL: urlDatabase[req.params.shortURL]["longURL"],
       user_id: req.session["user_id"],
       user: usersDatabase[req.session["user_id"]],
       userThatCreated: urlDatabase[req.params.shortURL]["userID"]
     };
-    res.render('urls_show', templateVars)
+    res.render('urls_show', templateVars);
   }
-}); 
+});
 
 //renders registration page
 app.get('/register', (req, res) => {
@@ -107,7 +107,7 @@ app.get('/register', (req, res) => {
     user_id: req.session["user_id"],
     user: usersDatabase[req.session["user_id"]]
   };
-  res.render('urls_register', templateVars)
+  res.render('urls_register', templateVars);
 });
 
 //renders login page
@@ -119,13 +119,13 @@ app.get('/login', (req, res) => {
     user_id: req.session["user_id"],
     user: usersDatabase[req.session["user_id"]],
   };
-  res.render('urls_login', templateVars)
+  res.render('urls_login', templateVars);
 });
 
 //redirects to long URL website, from urls_show clicking on shortURL
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  let keys = Object.keys(urlDatabase)
+  let keys = Object.keys(urlDatabase);
   if (!keys.includes(shortURL)) {
     res.status(403).send('Invalid URL Path');
   } else {
@@ -135,16 +135,17 @@ app.get('/u/:shortURL', (req, res) => {
 });
 
 
-      //////// post routes //////
+//////// post routes //////
 
-//generate new shortURL then send to independant page
+//generate new shortURL obj then go to corresponding page
 app.post('/urls', (req, res) => {
   if (!req.session["user_id"]) {
     res.redirect('/login');
   } else {
     let shortURL = generateRandom6DigitString();
-    urlDatabase[shortURL]={"userID":req.session["user_id"]};
-    urlDatabase[shortURL]["longURL"] = req.body.longURL
+    //create new obj in urlDatabase w/ shortURL then add the longURL value
+    urlDatabase[shortURL] = {"userID":req.session["user_id"]};
+    urlDatabase[shortURL]["longURL"] = req.body.longURL;
     res.redirect(`/urls/${shortURL}`);
   }
 });
@@ -153,20 +154,25 @@ app.post('/urls', (req, res) => {
 app.post('/urls/:id', (req, res) => {
   if (!req.session["user_id"]) {
     res.redirect('/login');
-  } else if(urlDatabase[req.params.id]["userID"] !== req.session["user_id"]) {
-      res.status(403).send("You may not edit URLs that you did not create");
+
+    //checks that creator ID matches user ID
+  } else if (urlDatabase[req.params.id]["userID"] !== req.session["user_id"]) {
+    res.status(403).send("You may not edit URLs that you did not create");
+
+    //peform edit action
   } else {
     let shortURL = req.params.id;
-    const newLongURL = req.body.longURL
+    const newLongURL = req.body.longURL;
     urlDatabase[shortURL]["longURL"] = newLongURL;
-    res.redirect("/urls")
+    res.redirect("/urls");
   }
 });
 
 //deletes key:pair from urldatabase object
 app.post('/urls/:shortURL/delete', (req, res) => {
-  const shortURL = req.params.shortURL
-  if(urlDatabase[shortURL]["userID"] !== req.session["user_id"]) {
+  const shortURL = req.params.shortURL;
+  const creatorId = urlDatabase[shortURL]["userID"];
+  if (creatorId !== req.session["user_id"]) {
     res.status(403).send("You may not delete URLs that you did not create");
   } else {
     delete urlDatabase[shortURL];
@@ -176,7 +182,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 //logs user out and clears cookie
 app.post('/logout', (req, res) => {
-  req.session['user_id'] = null
+  req.session = null;
   res.redirect('/login');
 });
 
@@ -185,11 +191,11 @@ app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
   if (email === "" || password === "") {
-    res.status(400).send('Email and/or password must not be empty');
-  } else { 
+    return res.status(400).send('Email and/or password must not be empty');
+  } else {
     for (const user in usersDatabase) {
       if (email === usersDatabase[user]["email"]) {
-        res.status(400).send('Email has already been registered');
+        return res.status(400).send('Email has already been registered');
       }
     }
     let currentId = addNewUser(email, password, usersDatabase);
@@ -204,6 +210,7 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
   if (email === "" || password === "") {
     res.status(400).send('Email and/or password must not be empty');
+    
   } else {
     //authenticate that user is in database
     const user = authenticateUser(email, password, usersDatabase);
@@ -217,7 +224,7 @@ app.post('/login', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`Tinyapp listening on port ${PORT}!`);
 });
 
-module.exports = {urlDatabase, usersDatabase}
+module.exports = {urlDatabase, usersDatabase};
