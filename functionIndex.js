@@ -1,7 +1,10 @@
 const {usersDatabase} = require('./express_server');
-const findUserFromEmail = (email) => {
-  for(const user in usersDatabase) {
-    if (usersDatabase[user]["email"] === email) {
+const bcrypt = require('bcryptjs');
+const salt = bcrypt.genSaltSync(10);
+
+const findUserFromEmail = (email, userDB) => {
+  for(const user in userDB) {
+    if (userDB[user]["email"] === email) {
       return user;
     } else {
       return null;
@@ -10,7 +13,7 @@ const findUserFromEmail = (email) => {
 };
 
 const authenticateUser = (email, password) => {
-  const user = findUserFromEmail(email);  
+  const user = findUserFromEmail(email, usersDatabase);  
   if (user && bcrypt.compareSync(password, usersDatabase[user]["password"])) {
     return user;
   } else {
@@ -27,14 +30,14 @@ const generateRandom6DigitString = () => {
   return result;
 };
 
-const addNewUser = (email, password) => {
+const addNewUser = (email, password, userDB) => {
   const userId = generateRandom6DigitString();
   const newUserObj = {
     id: userId,
     email,
     password: bcrypt.hashSync(password, salt)
   };
-  usersDatabase[userId] = newUserObj;
+  userDB[userId] = newUserObj;
   return userId;
 }
 
