@@ -9,8 +9,14 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: 'lighthouseUser'
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: 'googman'
+  }
 };
 
 const users = { 
@@ -53,11 +59,13 @@ app.get('/', (req, res) => {
 
 //create new URL page
 app.get('/urls/new', (req, res) => {
+  if (!req.cookies["user_id"]) {
+    res.redirect('/login');
+  }
   const templateVars = {
     user_id: req.cookies["user_id"],
     user: users[req.cookies["user_id"]],
   };
-  console.log(templateVars)
   res.render('urls_new', templateVars);
 });
 
@@ -73,13 +81,19 @@ app.get('/urls', (req, res) => {
 
 //renders the indiv page per URL
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = {
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL],
-    user_id: req.cookies["user_id"],
-    user: users[req.cookies["user_id"]]
-  };
-  res.render('urls_show', templateVars)
+  let keys = Object.keys(urlDatabase)
+  if (!keys.includes(req.params.shortURL)) {
+    res.status(403).send('Invalid URL Path');
+  } else {
+    const templateVars = {
+      shortURL: req.params.shortURL, 
+      longURL: urlDatabase[req.params.shortURL]["longURL"],
+      user_id: req.cookies["user_id"],
+      user: users[req.cookies["user_id"]],
+      userThatCreated: urlDatabase[req.params.shortURL]["userID"]
+    };
+    res.render('urls_show', templateVars)
+  }
 }); 
 
 //renders registration page
@@ -95,15 +109,19 @@ app.get('/register', (req, res) => {
 app.get('/login', (req, res) => {
   const templateVars = {
     user_id: req.cookies["user_id"],
-    user: users[req.cookies["user_id"]]
+    user: users[req.cookies["user_id"]],
   };
   res.render('urls_login', templateVars)
 });
 
 //redirects to long URL website, from urls_show clicking on shortURL
 app.get('/u/:shortURL', (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  if (req.params.shortURL !== urlDatabase[req.params.shortURL]) {
+    res.status(403).send('Invalid URL Path');
+  } else {
+    const longURL = urlDatabase[req.params.shortURL]["longURL"];
+    res.redirect(longURL);
+  }
 });
 
 
@@ -111,17 +129,26 @@ app.get('/u/:shortURL', (req, res) => {
 
 //generate new shortURL then send to independant page
 app.post('/urls', (req, res) => {
-  let shortURL = generateRandom6DigitString();
-  urlDatabase[shortURL] = req.body.longURL;
-  res.redirect(`/urls/${shortURL}`);
+  if (!req.cookies["user_id"]) {
+    res.redirect('/login');
+  } else {
+    let shortURL = generateRandom6DigitString();
+    urlDatabase[shortURL]={"userID":req.cookies["user_id"]};
+    urlDatabase[shortURL]["longURL"] = req.body.longURL
+    res.redirect(`/urls/${shortURL}`);
+  }
 });
 
 //edits long URL from urls_show then goes to my URL page
 app.post('/urls/:id', (req, res) => {
-  let shortURL = req.params.id;
-  const newLongURL = req.body.longURL
-  urlDatabase[shortURL] = newLongURL;
-  res.redirect("/urls")
+  if (!req.cookies["user_id"]) {
+    res.redirect('/login');
+  } else {
+    let shortURL = req.params.id;
+    const newLongURL = req.body.longURL
+    urlDatabase[shortURL]["longURL"] = newLongURL;
+    res.redirect("/urls")
+  }
 });
 
 //deletes key:pair from urldatabase object
@@ -155,8 +182,6 @@ app.post('/register', (req, res) => {
     email: req.body.email,
     password: req.body.password
   };
-  // res.cookie('email', req.body.email);
-  // res.cookie('password', req.body.password);
   res.cookie('user_id', id);
   res.redirect('/urls');
 });
