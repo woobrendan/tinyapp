@@ -200,7 +200,7 @@ app.post('/login', (req, res) => {
     res.status(400).send('Email and/or password must not be empty');
   }
   //authenticate that user is in database
-  const user = authenticateUser(email, password);
+  const user = authenticateUser(email, password, usersDatabase);
   if (user) {
     req.session['user_id'] = usersDatabase[user]["id"];
     res.redirect('/urls');

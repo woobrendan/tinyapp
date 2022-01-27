@@ -7,14 +7,14 @@ const findUserFromEmail = (email, userDB) => {
     if (userDB[user]["email"] === email) {
       return user;
     } else {
-      return null;
+      return undefined;
     }
   }
 };
 
-const authenticateUser = (email, password) => {
-  const user = findUserFromEmail(email, usersDatabase);  
-  if (user && bcrypt.compareSync(password, usersDatabase[user]["password"])) {
+const authenticateUser = (email, password, userDB) => {
+  const user = findUserFromEmail(email, userDB);  
+  if (user && bcrypt.compareSync(password, userDB[user]["password"])) {
     return user;
   } else {
     return false;
