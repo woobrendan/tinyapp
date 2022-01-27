@@ -1,6 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+
+const bcrypt = require('bcryptjs');
+const salt = bcrypt.genSaltSync(10);
+
 const PORT = 8080;
 const app = express();
 app.use(cookieParser());
@@ -19,7 +23,7 @@ const urlDatabase = {
   }
 };
 
-const users = { 
+const usersDatabase = { 
   "chandler": {
     id: "chandler", 
     email: "mschanandler@bong.com", 
@@ -32,22 +36,23 @@ const users = {
   }
 };
 
-// const findCurrentUser = (userObj) => {
-//   if (!req.cookies["user_id"]) {
-//     return null
-//   }
-//   for (const user in userObj) {
-//     if (req.cookies["user_id"] === user) {
-//       return user;
-//     }
-//   }
-// };
+const findUserFromEmail = (email) => {
+  const user = Object.keys(usersDatabase);
+  if (user.email === email) {
+    return user;
+  } else {
+    return null;
+  }
+};
 
-// const checkUserLoggedIn = () => {
-//   if (req.cookies["user_id"]) {
-//     return true;
-//   } else return false;
-// }
+const authenticateUser = (email, password) => {
+  const user = findUserFromEmail(email);
+  if (user && bcrypt.compareSync(password, user.password )) {
+    return user;
+  } else {
+    return false;
+  }
+};
 
 const generateRandom6DigitString = () => {
   let charSet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -57,6 +62,17 @@ const generateRandom6DigitString = () => {
     }
   return result;
 };
+
+const addNewUser = (email, password) => {
+  const userId = generateRandom6DigitString();
+  const newUserObj = {
+    id: userId,
+    email,
+    password: bcrypt.hashSync(password, salt)
+  };
+  usersDatabase[userId] = newUserObj;
+  return userId;
+}
 
 //get root and redirect to URL page
 app.get('/', (req, res) => {
@@ -70,7 +86,7 @@ app.get('/urls/new', (req, res) => {
   }
   const templateVars = {
     user_id: req.cookies["user_id"],
-    user: users[req.cookies["user_id"]],
+    user: usersDatabase[req.cookies["user_id"]],
   };
   res.render('urls_new', templateVars);
 });
@@ -83,7 +99,7 @@ app.get('/urls', (req, res) => {
   const templateVars = {
     urls: urlDatabase,
     user_id: req.cookies["user_id"],
-    user: users[req.cookies["user_id"]]
+    user: usersDatabase[req.cookies["user_id"]]
   };
   res.render('urls_index', templateVars);
 });
@@ -106,7 +122,7 @@ app.get('/urls/:shortURL', (req, res) => {
       shortURL: req.params.shortURL, 
       longURL: urlDatabase[req.params.shortURL]["longURL"],
       user_id: req.cookies["user_id"],
-      user: users[req.cookies["user_id"]],
+      user: usersDatabase[req.cookies["user_id"]],
       userThatCreated: urlDatabase[req.params.shortURL]["userID"]
     };
     res.render('urls_show', templateVars)
@@ -117,7 +133,7 @@ app.get('/urls/:shortURL', (req, res) => {
 app.get('/register', (req, res) => {
   const templateVars = {
     user_id: req.cookies["user_id"],
-    user: users[req.cookies["user_id"]]
+    user: usersDatabase[req.cookies["user_id"]]
   };
   res.render('urls_register', templateVars)
 });
@@ -126,7 +142,7 @@ app.get('/register', (req, res) => {
 app.get('/login', (req, res) => {
   const templateVars = {
     user_id: req.cookies["user_id"],
-    user: users[req.cookies["user_id"]],
+    user: usersDatabase[req.cookies["user_id"]],
   };
   res.render('urls_login', templateVars)
 });
@@ -188,44 +204,39 @@ app.post('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-//creates user, creates cookie for email/pw. pushes new user to global userobj
+//creates new user, creates cookie for user_id. pushes new user to global userobj
 app.post('/register', (req, res) => {
-  if (req.body.email === "" || req.body.password === "") {
+  const email = req.body.email;
+  const password = req.body.password;
+  if (email === "" || password === "") {
     res.status(400).send('Email and/or password must not be empty');
   }
   
-  for (const user in users) {
-    if (req.body.email === users[user]["email"]) {
+  for (const user in usersDatabase) {
+    if (email === usersDatabase[user]["email"]) {
       res.status(400).send('Email has already been registered');
     }
   }
-  const id = generateRandom6DigitString();
-  users[id] = {
-    id,
-    email: req.body.email,
-    password: req.body.password
-  };
-  res.cookie('user_id', id);
+  let currentId = addNewUser(email, password); 
+ 
+  res.cookie('user_id', currentId);
   res.redirect('/urls');
 });
 
 //confirms login info, then sets cookies
 app.post('/login', (req, res) => {
-  if (req.body.email === "" || req.body.password === "") {
+  const email = req.body.email;
+  const password = req.body.password;
+  if (email === "" || password === "") {
     res.status(400).send('Email and/or password must not be empty');
   }
-  for (const user in users) {
-    if (req.body.email === users[user]["email"]) {
-      if(req.body.password !== users[user]["password"]) {
-        res.status(403).send('Password did not match, please try again.');
-      } else {
-        // res.cookie('email', req.body.email);
-        res.cookie('user_id', user);
-        res.redirect('/urls');
-      }
-    } else {
-      res.status(403).send('Email did match any emails on record.');
-    }
+  //authenticate that user is in database
+  const user = authenticateUser(email, password);
+  if (user) {
+    res.cookie('user_id', user.id);
+    res.redirect('/urls');
+  } else {
+    res.status(400).send('Credentials did not match those on record');
   }
 });
 
