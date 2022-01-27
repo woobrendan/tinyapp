@@ -15,7 +15,7 @@ const urlDatabase = {
   },
   "9sm5xK": {
     longURL: "http://www.google.com",
-    userID: 'googman'
+    userID: 'chandler'
   }
 };
 
@@ -42,6 +42,12 @@ const users = {
 //     }
 //   }
 // };
+
+// const checkUserLoggedIn = () => {
+//   if (req.cookies["user_id"]) {
+//     return true;
+//   } else return false;
+// }
 
 const generateRandom6DigitString = () => {
   let charSet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -71,6 +77,9 @@ app.get('/urls/new', (req, res) => {
 
 //My URL page with all URLs, also home page
 app.get('/urls', (req, res) => {
+  if (!req.cookies["user_id"]) {
+    res.redirect('/login');
+  }
   const templateVars = {
     urls: urlDatabase,
     user_id: req.cookies["user_id"],
@@ -82,8 +91,16 @@ app.get('/urls', (req, res) => {
 //renders the indiv page per URL
 app.get('/urls/:shortURL', (req, res) => {
   let keys = Object.keys(urlDatabase)
+  
+  //checks for valid shortURL path
   if (!keys.includes(req.params.shortURL)) {
     res.status(403).send('Invalid URL Path');
+
+    //checks to match current user ID with creator ID
+  } else if (urlDatabase[req.params.shortURL]["userID"] !== req.cookies["user_id"]) {
+      res.send("You may only view URLs that you created");
+
+    //render the page
   } else {
     const templateVars = {
       shortURL: req.params.shortURL, 
@@ -116,7 +133,8 @@ app.get('/login', (req, res) => {
 
 //redirects to long URL website, from urls_show clicking on shortURL
 app.get('/u/:shortURL', (req, res) => {
-  if (req.params.shortURL !== urlDatabase[req.params.shortURL]) {
+  let keys = Object.keys(urlDatabase)
+  if (!keys.includes(req.params.shortURL)) {
     res.status(403).send('Invalid URL Path');
   } else {
     const longURL = urlDatabase[req.params.shortURL]["longURL"];
@@ -143,6 +161,8 @@ app.post('/urls', (req, res) => {
 app.post('/urls/:id', (req, res) => {
   if (!req.cookies["user_id"]) {
     res.redirect('/login');
+  } else if(urlDatabase[req.params.id]["userID"] !== req.cookies["user_id"]) {
+      res.status(403).send("You may not edit URLs that you did not create");
   } else {
     let shortURL = req.params.id;
     const newLongURL = req.body.longURL
@@ -153,6 +173,9 @@ app.post('/urls/:id', (req, res) => {
 
 //deletes key:pair from urldatabase object
 app.post('/urls/:shortURL/delete', (req, res) => {
+  if(urlDatabase[req.params.shortURL]["userID"] !== req.cookies["user_id"]) {
+    res.status(403).send("You may not delete URLs that you did not create");
+  }
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 });
@@ -162,7 +185,7 @@ app.post('/logout', (req, res) => {
   res.clearCookie('user_id')
   res.clearCookie('email')
   res.clearCookie('password')
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 //creates user, creates cookie for email/pw. pushes new user to global userobj
@@ -188,6 +211,9 @@ app.post('/register', (req, res) => {
 
 //confirms login info, then sets cookies
 app.post('/login', (req, res) => {
+  if (req.body.email === "" || req.body.password === "") {
+    res.status(400).send('Email and/or password must not be empty');
+  }
   for (const user in users) {
     if (req.body.email === users[user]["email"]) {
       if(req.body.password !== users[user]["password"]) {
