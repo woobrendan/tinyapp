@@ -1,4 +1,4 @@
-const {findUserFromEmail, authenticateUser, addNewUser, generateRandom6DigitString} = require('./functionIndex');
+const {findUserFromEmail, authenticateUser, addNewUser, generateRandom6DigitString} = require('./helpers');
 const express = require('express');
 const app = express();
 
