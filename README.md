@@ -6,7 +6,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 !["Screenshot of Clean Login Page"](https://github.com/wootang9/tinyapp/blob/master/docs/tinyapp-login-page.png?raw=true)
 
-!["Screenshot of Index page that has a list of created short URLs and their corresponding long URL"](https://github.com/wootang9/tinyapp/blob/master/docs/tinyapp-url-index.png?raw=true)
+!["Screenshot of Index page that contains a list of created short URLs and their corresponding long URL"](https://github.com/wootang9/tinyapp/blob/master/docs/tinyapp-url-index.png?raw=true)
 
 !["Screenshot of URL page"](https://github.com/wootang9/tinyapp/blob/master/docs/tinyapp-url-page.png?raw=true)
 
