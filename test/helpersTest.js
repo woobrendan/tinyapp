@@ -2,16 +2,16 @@ const { assert } = require('chai');
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync(10);
 
-const { findUserFromEmail, authenticateUser, addNewUser } = require('../helpers.js');
+const { findUserFromEmail, authenticateUser } = require('../helpers.js');
 
 const testUsers = {
   "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
+    id: "userRandomID",
+    email: "user@example.com",
     password: bcrypt.hashSync("purple-monkey-dinosaur", salt)
   },
   "user2RandomID": {
-    id: "user2RandomID", 
+    id: "user2RandomID",
     email: "user2@example.com",
     password: bcrypt.hashSync("dishwasher-funk", salt)
   }
@@ -20,7 +20,7 @@ const testUsers = {
 
 describe('findUserFromEmail', function() {
   it('should return a user with valid email', function() {
-    const user = findUserFromEmail("user@example.com", testUsers)
+    const user = findUserFromEmail("user@example.com", testUsers);
     const expectedUserID = "userRandomID";
     assert.equal(user, expectedUserID);
   });
@@ -28,7 +28,7 @@ describe('findUserFromEmail', function() {
   it('should return undefined when email is not in database', () => {
     const user = findUserFromEmail('NotAnEmail@gmail.com', testUsers);
     assert.equal(user, undefined);
-  })
+  });
 });
 
 describe('Authenticate User', function() {
