@@ -18,7 +18,6 @@ const PORT = 8080;
 
 app.set('view engine', 'ejs');
 
-
 const urlDatabase = {
   "b2xVn2": {
     longURL: "http://www.lighthouselabs.ca",
@@ -134,7 +133,6 @@ app.get('/u/:shortURL', (req, res) => {
   }
 });
 
-
 //////// post routes //////
 
 //generate new shortURL obj then go to corresponding page
@@ -210,7 +208,7 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
   if (email === "" || password === "") {
     res.status(400).send('Email and/or password must not be empty');
-    
+
   } else {
     //authenticate that user is in database
     const user = authenticateUser(email, password, usersDatabase);
