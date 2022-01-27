@@ -100,6 +100,9 @@ app.get('/urls/:shortURL', (req, res) => {
 
 //renders registration page
 app.get('/register', (req, res) => {
+  if (req.session["user_id"]) {
+    res.redirect('/urls');
+  }
   const templateVars = {
     user_id: req.session["user_id"],
     user: usersDatabase[req.session["user_id"]]
@@ -109,6 +112,9 @@ app.get('/register', (req, res) => {
 
 //renders login page
 app.get('/login', (req, res) => {
+  if (req.session["user_id"]) {
+    res.redirect('/urls');
+  }
   const templateVars = {
     user_id: req.session["user_id"],
     user: usersDatabase[req.session["user_id"]],
@@ -136,7 +142,6 @@ app.post('/urls', (req, res) => {
   if (!req.session["user_id"]) {
     res.redirect('/login');
   } else {
-    console.log(usersDatabase)
     let shortURL = generateRandom6DigitString();
     urlDatabase[shortURL]={"userID":req.session["user_id"]};
     urlDatabase[shortURL]["longURL"] = req.body.longURL
@@ -163,9 +168,10 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL
   if(urlDatabase[shortURL]["userID"] !== req.session["user_id"]) {
     res.status(403).send("You may not delete URLs that you did not create");
+  } else {
+    delete urlDatabase[shortURL];
+    res.redirect('/urls');
   }
-  delete urlDatabase[shortURL];
-  res.redirect('/urls');
 });
 
 //logs user out and clears cookie
@@ -180,16 +186,16 @@ app.post('/register', (req, res) => {
   const password = req.body.password;
   if (email === "" || password === "") {
     res.status(400).send('Email and/or password must not be empty');
-  }
-  
-  for (const user in usersDatabase) {
-    if (email === usersDatabase[user]["email"]) {
-      res.status(400).send('Email has already been registered');
+  } else { 
+    for (const user in usersDatabase) {
+      if (email === usersDatabase[user]["email"]) {
+        res.status(400).send('Email has already been registered');
+      }
     }
+    let currentId = addNewUser(email, password, usersDatabase);
+    req.session['user_id'] = currentId;
+    res.redirect('/urls');
   }
-  let currentId = addNewUser(email, password, usersDatabase);
-  req.session['user_id'] = currentId;
-  res.redirect('/urls');
 });
 
 //confirms login info, then sets cookies
@@ -198,14 +204,15 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
   if (email === "" || password === "") {
     res.status(400).send('Email and/or password must not be empty');
-  }
-  //authenticate that user is in database
-  const user = authenticateUser(email, password, usersDatabase);
-  if (user) {
-    req.session['user_id'] = usersDatabase[user]["id"];
-    res.redirect('/urls');
   } else {
-    res.status(400).send('Credentials did not match those on record');
+    //authenticate that user is in database
+    const user = authenticateUser(email, password, usersDatabase);
+    if (user) {
+      req.session['user_id'] = usersDatabase[user]["id"];
+      res.redirect('/urls');
+    } else {
+      res.status(400).send('Credentials did not match those on record');
+    }
   }
 });
 
