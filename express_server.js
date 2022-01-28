@@ -136,7 +136,7 @@ app.get('/u/:shortURL', (req, res) => {
   }
 });
 
-//////// post routes //////
+//////// post routes ////////
 
 //generate new shortURL obj then go to corresponding page
 app.post('/urls', (req, res) => {
@@ -148,39 +148,6 @@ app.post('/urls', (req, res) => {
     urlDatabase[shortURL] = {"userID":req.session["user_id"]};
     urlDatabase[shortURL]["longURL"] = req.body.longURL;
     res.redirect(`/urls/${shortURL}`);
-  }
-});
-
-//edits long URL from urls_show then goes to my URL page
-app.put('/urls/:id', (req, res) => {
-  const newLongUrl = req.body.longURL;
-  if (!req.session["user_id"]) {
-    res.redirect('/login');
-
-  } else if(newLongUrl === '') { 
-    res.status(403).send("Updated URL cannot be empty");
-
-    //checks that creator ID matches user ID
-  } else if (urlDatabase[req.params.id]["userID"] !== req.session["user_id"]) {
-    res.status(403).send("You may not edit URLs that you did not create");
-
-    //peform edit action
-  } else {
-    let shortURL = req.params.id;
-    urlDatabase[shortURL]["longURL"] = newLongUrl;
-    res.redirect("/urls");
-  }
-});
-
-//deletes key:pair from urldatabase object
-app.delete('/urls/:shortURL', (req, res) => {
-  const shortURL = req.params.shortURL;
-  const creatorId = urlDatabase[shortURL]["userID"];
-  if (creatorId !== req.session["user_id"]) {
-    res.status(403).send("You may not delete URLs that you did not create");
-  } else {
-    delete urlDatabase[shortURL];
-    res.redirect('/urls');
   }
 });
 
@@ -224,6 +191,41 @@ app.post('/login', (req, res) => {
     } else {
       res.status(400).send('Credentials did not match those on record');
     }
+  }
+});
+
+///////Put and Delete Methods//////
+
+//edits long URL from urls_show then goes to my URL page
+app.put('/urls/:id', (req, res) => {
+  const newLongUrl = req.body.longURL;
+  if (!req.session["user_id"]) {
+    res.redirect('/login');
+
+  } else if(newLongUrl === '') { 
+    res.status(403).send("Updated URL cannot be empty");
+
+    //checks that creator ID matches user ID
+  } else if (urlDatabase[req.params.id]["userID"] !== req.session["user_id"]) {
+    res.status(403).send("You may not edit URLs that you did not create");
+
+    //peform edit action
+  } else {
+    let shortURL = req.params.id;
+    urlDatabase[shortURL]["longURL"] = newLongUrl;
+    res.redirect("/urls");
+  }
+});
+
+//deletes key:pair from urldatabase object
+app.delete('/urls/:shortURL', (req, res) => {
+  const shortURL = req.params.shortURL;
+  const creatorId = urlDatabase[shortURL]["userID"];
+  if (creatorId !== req.session["user_id"]) {
+    res.status(403).send("You may not delete URLs that you did not create");
+  } else {
+    delete urlDatabase[shortURL];
+    res.redirect('/urls');
   }
 });
 
