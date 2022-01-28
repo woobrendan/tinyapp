@@ -153,8 +153,12 @@ app.post('/urls', (req, res) => {
 
 //edits long URL from urls_show then goes to my URL page
 app.put('/urls/:id', (req, res) => {
+  const newLongUrl = req.body.longURL;
   if (!req.session["user_id"]) {
     res.redirect('/login');
+
+  } else if(newLongUrl === '') { 
+    res.status(403).send("Updated URL cannot be empty");
 
     //checks that creator ID matches user ID
   } else if (urlDatabase[req.params.id]["userID"] !== req.session["user_id"]) {
@@ -163,8 +167,7 @@ app.put('/urls/:id', (req, res) => {
     //peform edit action
   } else {
     let shortURL = req.params.id;
-    const newLongURL = req.body.longURL;
-    urlDatabase[shortURL]["longURL"] = newLongURL;
+    urlDatabase[shortURL]["longURL"] = newLongUrl;
     res.redirect("/urls");
   }
 });
