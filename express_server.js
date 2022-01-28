@@ -45,6 +45,8 @@ const usersDatabase = {
   }
 };
 
+///////Get Routes///////
+
 //get root and redirect to URL page
 app.get('/', (req, res) => {
   res.redirect('/urls');
