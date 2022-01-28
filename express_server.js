@@ -202,7 +202,7 @@ app.put('/urls/:id', (req, res) => {
   if (!req.session["user_id"]) {
     res.redirect('/login');
 
-  } else if(newLongUrl === '') { 
+  } else if (newLongUrl === '') {
     res.status(403).send("Updated URL cannot be empty");
 
     //checks that creator ID matches user ID
