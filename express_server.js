@@ -2,6 +2,9 @@ const {authenticateUser, addNewUser, generateRandom6DigitString} = require('./he
 const express = require('express');
 const app = express();
 
+const methodOverride = require('method-override');
+app.use(methodOverride('_method'))
+
 const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
 
@@ -149,7 +152,7 @@ app.post('/urls', (req, res) => {
 });
 
 //edits long URL from urls_show then goes to my URL page
-app.post('/urls/:id', (req, res) => {
+app.put('/urls/:id', (req, res) => {
   if (!req.session["user_id"]) {
     res.redirect('/login');
 
@@ -167,7 +170,7 @@ app.post('/urls/:id', (req, res) => {
 });
 
 //deletes key:pair from urldatabase object
-app.post('/urls/:shortURL/delete', (req, res) => {
+app.delete('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const creatorId = urlDatabase[shortURL]["userID"];
   if (creatorId !== req.session["user_id"]) {

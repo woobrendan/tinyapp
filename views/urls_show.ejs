@@ -14,7 +14,7 @@
       <h5 class="card-title">TinyURL for: <%= longURL %></h5>
       <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
       <p>Short URL was created by user: <%= userThatCreated %></p>
-      <form method="POST" action="/urls/<%= shortURL %>">
+      <form method="POST" action="/urls/<%= shortURL %>?_method=PUT">
         <div style="padding-left: 30%">
         <input class="form-control center" type="text" name="longURL" placeholder="Enter Updated URL" style="width:50%; margin: 1em">
       </div>
