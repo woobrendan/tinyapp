@@ -43,13 +43,13 @@ const addNewUser = (email, password, userDB) => {
 const checkUrlStart = (longURL) => {
   const urlHead = "http://";
   const headCheck = longURL.split('').splice(0, 7).join('');
-  if (urlHead === headCheck){
+  if (urlHead === headCheck) {
     return longURL;
   } else {
     const fixedUrl = urlHead + longURL;
     return fixedUrl;
   }
-}
+};
 
 module.exports = {
   findUserFromEmail,
