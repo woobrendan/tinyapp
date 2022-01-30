@@ -40,9 +40,21 @@ const addNewUser = (email, password, userDB) => {
   return userId;
 };
 
+const checkUrlStart = (longURL) => {
+  const urlHead = "http://www.";
+  const headCheck = longURL.split('').splice(0, 11).join('');
+  if (urlHead === headCheck){
+    return longURL;
+  } else {
+    const fixedUrl = urlHead + longURL;
+    return fixedUrl;
+  }
+}
+
 module.exports = {
   findUserFromEmail,
   authenticateUser,
   generateRandom6DigitString,
   addNewUser,
+  checkUrlStart
 };

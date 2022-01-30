@@ -1,4 +1,4 @@
-const {authenticateUser, addNewUser, generateRandom6DigitString} = require('./helpers');
+const {authenticateUser, addNewUser, generateRandom6DigitString, checkUrlStart} = require('./helpers');
 const { urlDatabase, usersDatabase} = require('./databases');
 
 const express = require('express');
@@ -121,9 +121,11 @@ app.post('/urls', (req, res) => {
     res.redirect('/login');
   } else {
     const shortURL = generateRandom6DigitString();
+    const longURL = req.body.longURL;
+    const confirmedUrl = checkUrlStart(longURL);
     //create new obj in urlDatabase w/ shortURL then add the longURL value
     urlDatabase[shortURL] = {"userID":req.session["user_id"]};
-    urlDatabase[shortURL]["longURL"] = req.body.longURL;
+    urlDatabase[shortURL]["longURL"] = confirmedUrl;
     res.redirect(`/urls/${shortURL}`);
   }
 });
