@@ -23,6 +23,7 @@
     </thread>
     <tbody>
       <% for (let url in urls) {%>
+        <% if (urls[url]["userID"] === user.id) { %>
         <tr>
           <td><a href="/urls/<%=url%>"><%= url %></a></td>
           <td><%= urls[url]["longURL"] %></td>
@@ -31,6 +32,7 @@
           </form></td>
           <td><form method="POST" action="/urls/<%=url%>?_method=DELETE"><button type="submit" class="btn btn-outline-danger">Delete</button></form></td>
         </tr>
+        <% } %>
       <% } %>
     </tbody>
   </table>

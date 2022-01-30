@@ -41,8 +41,8 @@ const addNewUser = (email, password, userDB) => {
 };
 
 const checkUrlStart = (longURL) => {
-  const urlHead = "http://www.";
-  const headCheck = longURL.split('').splice(0, 11).join('');
+  const urlHead = "http://";
+  const headCheck = longURL.split('').splice(0, 7).join('');
   if (urlHead === headCheck){
     return longURL;
   } else {
