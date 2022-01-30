@@ -79,7 +79,7 @@ app.get('/urls', (req, res) => {
 
 //renders the indiv page per URL
 app.get('/urls/:shortURL', (req, res) => {
-  let keys = Object.keys(urlDatabase);
+  const keys = Object.keys(urlDatabase);
   
   //checks for valid shortURL path
   if (!keys.includes(req.params.shortURL)) {
@@ -129,7 +129,7 @@ app.get('/login', (req, res) => {
 //redirects to long URL website, from urls_show clicking on shortURL
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
-  let keys = Object.keys(urlDatabase);
+  const keys = Object.keys(urlDatabase);
   if (!keys.includes(shortURL)) {
     res.status(403).send('Invalid URL Path');
   } else {
@@ -145,7 +145,7 @@ app.post('/urls', (req, res) => {
   if (!req.session["user_id"]) {
     res.redirect('/login');
   } else {
-    let shortURL = generateRandom6DigitString();
+    const shortURL = generateRandom6DigitString();
     //create new obj in urlDatabase w/ shortURL then add the longURL value
     urlDatabase[shortURL] = {"userID":req.session["user_id"]};
     urlDatabase[shortURL]["longURL"] = req.body.longURL;
@@ -163,7 +163,7 @@ app.post('/logout', (req, res) => {
 app.post('/register', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  if (email === "" || password === "") {
+  if (!email || !password) {
     return res.status(400).send('Email and/or password must not be empty');
   } else {
     for (const user in usersDatabase) {
@@ -171,7 +171,7 @@ app.post('/register', (req, res) => {
         return res.status(400).send('Email has already been registered');
       }
     }
-    let currentId = addNewUser(email, password, usersDatabase);
+    const currentId = addNewUser(email, password, usersDatabase);
     req.session['user_id'] = currentId;
     res.redirect('/urls');
   }
@@ -181,7 +181,7 @@ app.post('/register', (req, res) => {
 app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  if (email === "" || password === "") {
+  if (!email || !password) {
     res.status(400).send('Email and/or password must not be empty');
 
   } else {
@@ -204,7 +204,7 @@ app.put('/urls/:id', (req, res) => {
   if (!req.session["user_id"]) {
     res.redirect('/login');
 
-  } else if (newLongUrl === '') {
+  } else if (!newLongUrl) {
     res.status(403).send("Updated URL cannot be empty");
 
     //checks that creator ID matches user ID
@@ -213,7 +213,7 @@ app.put('/urls/:id', (req, res) => {
 
     //peform edit action
   } else {
-    let shortURL = req.params.id;
+    const shortURL = req.params.id;
     urlDatabase[shortURL]["longURL"] = newLongUrl;
     res.redirect("/urls");
   }
