@@ -1,4 +1,6 @@
 const {authenticateUser, addNewUser, generateRandom6DigitString} = require('./helpers');
+const { urlDatabase, usersDatabase} = require('./databases');
+
 const express = require('express');
 const app = express();
 
@@ -14,36 +16,9 @@ app.use(cookieSession({
   keys: ['key1', 'key2']
 }));
 
-const bcrypt = require('bcryptjs');
-const salt = bcrypt.genSaltSync(10);
-
 const PORT = 8080;
 
 app.set('view engine', 'ejs');
-
-const urlDatabase = {
-  "b2xVn2": {
-    longURL: "http://www.lighthouselabs.ca",
-    userID: 'lighthouseUser'
-  },
-  "9sm5xK": {
-    longURL: "http://www.google.com",
-    userID: 'chandler'
-  }
-};
-
-const usersDatabase = {
-  "chandler": {
-    id: "chandler",
-    email: "mschanandler@bong.com",
-    password: bcrypt.hashSync("couldiBEapassword", salt)
-  },
-  "davidortiz": {
-    id: "davidortiz",
-    email: "david@ortiz.com",
-    password: bcrypt.hashSync("Th15password", salt)
-  }
-};
 
 ///////Get Routes///////
 
